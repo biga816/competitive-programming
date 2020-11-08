@@ -1,9 +1,5 @@
 import * as fs from 'fs';
-const inputs = fs
-  .readFileSync('/dev/stdin', 'utf8')
-  .trim()
-  .split('\n')
-  .map((val) => Number(val));
+const inputs = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n').map(Number);
 const N = inputs.shift();
 const A1 = inputs.shift();
 
