@@ -1,6 +1,5 @@
 import * as fs from 'fs';
 const [N, textCList, Q, ...inputs] = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
-const CList = textCList.split(' ').map(BigInt);
 
 enum OrderType {
   SINGLE = 1,
@@ -8,66 +7,77 @@ enum OrderType {
   ALL = 3,
 }
 
-const getSingleOrderAmount = (index: number, amount: bigint) => {
-  if (CList[index] >= amount) {
-    CList[index] -= amount;
+const allCList = textCList.split(' ').map(Number);
+const oddCList = allCList.filter((_, i) => i % 2 === 0);
+const allListLength = allCList.length;
+const oddListLength = oddCList.length;
+
+const min = (values: number[]) => values.reduce((a, b) => (a < b ? a : b));
+let allMin = min(allCList);
+let oddMin = min(oddCList);
+let setAllOrderTotal = 0;
+let setOddOrderTotal = 0;
+
+const getSingleOrderAmount = (index: number, amount: number) => {
+  if (index % 2 === 0 && allCList[index] >= amount + setOddOrderTotal) {
+    allCList[index] -= amount;
+    oddMin = Math.min(oddMin, allCList[index] - setOddOrderTotal);
+    allMin = Math.min(oddMin, allMin);
+    return amount;
+  } else if (index % 2 !== 0 && allCList[index] >= amount + setAllOrderTotal) {
+    allCList[index] -= amount;
+    allMin = Math.min(allMin, allCList[index] - setAllOrderTotal);
     return amount;
   } else {
-    return BigInt(0);
+    return 0;
   }
 };
 
-const getSetOrderAmount = (amount: bigint, quotient: number, remainder: number) => {
-  let total = BigInt(0);
-  let items = [];
-
-  for (let i = 0; i < CList.length; i = i + 1) {
-    const c = CList[i];
-    const cIndex = i + 1;
-    if (cIndex % quotient === remainder) {
-      if (c >= amount) {
-        total = total + BigInt(amount);
-        items.push({ index: i, amount });
-      } else {
-        // items = [];
-        return BigInt(0);
-      }
-    }
+const getOddSetOrderAmount = (amount: number) => {
+  let total = 0;
+  if (oddMin >= amount) {
+    setOddOrderTotal += amount;
+    oddMin -= amount;
+    allMin = Math.min(oddMin, allMin);
+    total = oddListLength * amount;
   }
-
-  let i = items.length - 1;
-  while (-1 < i) {
-    CList[items[i].index] = CList[items[i].index] - items[i].amount;
-    i--;
-  }
-  // items.forEach((item) => {
-  //   CList[item.index] = CList[item.index] - item.amount;
-  // });
-  items = [];
   return total;
 };
 
-let total = BigInt(0);
-inputs.forEach((input, idx) => {
+const getAllSetOrderAmount = (amount: number) => {
+  let total = 0;
+  if (allMin >= amount) {
+    setAllOrderTotal += amount;
+    setOddOrderTotal += amount;
+    oddMin -= amount;
+    allMin -= amount;
+    total = allListLength * amount;
+  }
+  return total;
+};
+
+let total = 0;
+inputs.forEach((input) => {
   const [order, ...values] = input.split(' ').map(Number);
-  let amount = BigInt(0);
+  let amount = 0;
   switch (order) {
     case OrderType.SINGLE:
       const cIndex = values[0] - 1;
-      amount = getSingleOrderAmount(cIndex, BigInt(values[1]));
+      amount = getSingleOrderAmount(cIndex, values[1]);
       break;
     case OrderType.SET:
-      amount = getSetOrderAmount(BigInt(values[0]), 2, 1);
+      amount = getOddSetOrderAmount(values[0]);
       break;
     case OrderType.ALL:
-      amount = getSetOrderAmount(BigInt(values[0]), 1, 0);
+      amount = getAllSetOrderAmount(values[0]);
       break;
     default:
       break;
   }
-  if (amount > BigInt(0)) {
+
+  if (amount > 0) {
     total += amount;
   }
 });
 
-console.log(total.toString());
+console.log(total);
