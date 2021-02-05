@@ -15,6 +15,10 @@ interface Queue {
   memberNo: number;
 }
 
+interface DfsRoute {
+  [key: number]: { in: number; out?: number };
+}
+
 // create tree
 let rootNo: number;
 bossNoList.forEach((bossNo, i) => {
@@ -28,39 +32,35 @@ bossNoList.forEach((bossNo, i) => {
   }
 });
 
-let queueList: Queue[] = [
-  {
-    type: QueueType.In,
-    memberNo: rootNo,
-  },
-];
+const dfsRoute: DfsRoute = {};
+let queueList: Queue[] = [{ type: QueueType.In, memberNo: rootNo }];
 let idx = 0;
-const dfsIndexObj: { [key: number]: { in: number; out?: number } } = {};
 
 // search tree from root (dfs)
 while (queueList.length > 0) {
   const { type, memberNo: targetNo } = queueList.pop();
   if (type === QueueType.In) {
     // save route (the way there)
-    dfsIndexObj[targetNo] = { in: idx };
+    dfsRoute[targetNo] = { in: idx };
 
     // add index to queue list for the way back
     queueList.push({ type: QueueType.Out, memberNo: targetNo });
 
     // add members to queue list for the way there
-    if (memberNoListMap.get(targetNo) && memberNoListMap.get(targetNo).length > 0) {
-      const memberQueueList = memberNoListMap.get(targetNo).map((memberNo) => ({ type: QueueType.In, memberNo }));
+    const memberNoList = memberNoListMap.get(targetNo);
+    if (memberNoList && memberNoList.length > 0) {
+      const memberQueueList = memberNoList.map((memberNo) => ({ type: QueueType.In, memberNo }));
       queueList.push(...memberQueueList);
     }
   } else {
     // save route (the way back)
-    dfsIndexObj[targetNo].out = idx;
+    dfsRoute[targetNo].out = idx;
   }
   idx++;
 }
 
 pairList.forEach(([memberNo, bossNo]) => {
-  if (dfsIndexObj[bossNo].in <= dfsIndexObj[memberNo].in && dfsIndexObj[memberNo].in < dfsIndexObj[bossNo].out) {
+  if (dfsRoute[bossNo].in <= dfsRoute[memberNo].in && dfsRoute[memberNo].in < dfsRoute[bossNo].out) {
     console.log('Yes');
   } else {
     console.log('No');
