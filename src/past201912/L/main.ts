@@ -1,17 +1,10 @@
 import * as fs from 'fs';
 const data = fs.readFileSync('/dev/stdin', 'utf8').trim().split('\n');
 const [N, M] = data.shift().split(' ').map(Number);
-const lgTowerData = data.splice(0, Number(N)).map((v) => v.split(' ').map(Number));
-const smTowerData = data.map((v) => v.split(' ').map(Number));
-
-enum TowerType {
-  'lg',
-  'sm',
-}
+const towerData = data.map((v) => v.split(' ').map(Number));
 
 interface Tower {
   key: number;
-  type: TowerType;
   x: number;
   y: number;
   color: number;
@@ -48,36 +41,36 @@ class UnionFind<T> {
   }
 }
 
+class Util {
+  static convertTowerData(data: number[][]): Tower[] {
+    return data.reduce((obj, cur, idx) => {
+      obj.push({ key: idx, x: cur[0], y: cur[1], color: cur[2] });
+      return obj;
+    }, [] as Tower[]);
+  }
+
+  static calcCost(from: Tower, to: Tower): number {
+    const dx = from.x - to.x;
+    const dy = from.y - to.y;
+    const mag = from.color === to.color ? 1 : 10;
+    return Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2)) * mag;
+  }
+}
+
 const uf = new UnionFind<number>();
-const getTowerDataList = (type: TowerType, data: number[][], offset: number = 0) =>
-  data.reduce((obj, cur, idx) => {
-    obj.push({ key: idx + offset, type: type, x: cur[0], y: cur[1], color: cur[2] });
-    return obj;
-  }, [] as Tower[]);
+const towers = Util.convertTowerData(towerData);
 
-const calcCost = (from: Tower, to: Tower) => {
-  const dx = from.x - to.x;
-  const dy = from.y - to.y;
-  const mag = from.color === to.color ? 1 : 10;
-  return Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2)) * mag;
-};
-
-const allTowerData = [
-  ...getTowerDataList(TowerType.lg, lgTowerData),
-  ...getTowerDataList(TowerType.sm, smTowerData, lgTowerData.length),
-];
-
-const allEdgeList = allTowerData
+const edges = towers
   .reduce((allList, from) => {
-    const edges = allTowerData.reduce((fromList, to) => {
+    const edges = towers.reduce((list, to) => {
       if (from.key !== to.key) {
-        fromList.push({
+        list.push({
           fromKey: from.key,
           toKey: to.key,
-          cost: calcCost(from, to),
+          cost: Util.calcCost(from, to),
         });
       }
-      return fromList;
+      return list;
     }, [] as Edge[]);
 
     allList.push(...edges);
@@ -88,7 +81,7 @@ const allEdgeList = allTowerData
 let totalCost = 0;
 const lgUsedTowerSet = new Set<number>();
 
-for (const edge of allEdgeList) {
+for (const edge of edges) {
   const fromKey = edge.fromKey;
   const toKey = edge.toKey;
 
@@ -96,14 +89,14 @@ for (const edge of allEdgeList) {
     totalCost += edge.cost;
     uf.union(fromKey, toKey);
 
-    if (fromKey < lgTowerData.length) {
+    if (fromKey < N) {
       lgUsedTowerSet.add(fromKey);
     }
-    if (toKey < lgTowerData.length) {
+    if (toKey < N) {
       lgUsedTowerSet.add(toKey);
     }
 
-    if (lgUsedTowerSet.size >= lgTowerData.length) {
+    if (lgUsedTowerSet.size >= N) {
       break;
     }
   }
