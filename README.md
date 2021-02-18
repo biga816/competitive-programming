@@ -15,6 +15,8 @@ $ npm run test ./src/past201912/A/
 
 - LCA / Lowest Common Ancestor (最小共通祖先)
 - Dijkstra's algorithm
+- Kruskal's algorithm
+- Union-Find algorithm
 
 ### Terms
 
