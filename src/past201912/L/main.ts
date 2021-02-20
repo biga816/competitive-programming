@@ -65,19 +65,16 @@ class Util {
   }
 }
 
-// Get all combinations of small towers
+// Get all patterns of small tower conbinations
 const bits = parseInt(Array(smTowerData.length).fill(1).join(''), 2);
-const smTowerCombinations: string[] = [];
-for (let i = 0; i <= bits; i++) {
-  smTowerCombinations.push(i.toString(2));
-}
+const smTowerPatterns = Array.from(new Array(bits + 1)).map((_, i) => i.toString(2));
 
 let minTotalCost = 0;
 
 // Check all pattern cost
-smTowerCombinations.forEach((combination) => {
+smTowerPatterns.forEach((pattern) => {
   // Get target small towers
-  const smTowerIdxList = combination
+  const smTowerIdxList = pattern
     .split('')
     .map((v, i) => (v === '1' ? i : NaN))
     .filter((v) => !isNaN(v));
