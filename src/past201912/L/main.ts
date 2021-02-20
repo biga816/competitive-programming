@@ -60,8 +60,8 @@ class Util {
   static calcCost(from: Tower, to: Tower): number {
     const dx = from.x - to.x;
     const dy = from.y - to.y;
-    const mag = from.color === to.color ? 1 : 10;
-    return Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2)) * mag;
+    const rate = from.color === to.color ? 1 : 10;
+    return Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2)) * rate;
   }
 }
 
@@ -76,32 +76,29 @@ let minTotalCost = 0;
 
 // Check all pattern cost
 smTowerCombinations.forEach((combination) => {
-  // get target small towers
+  // Get target small towers
   const smTowerIdxList = combination
     .split('')
     .map((v, i) => (v === '1' ? i : NaN))
     .filter((v) => !isNaN(v));
   const targetSmTowerData = smTowerIdxList.map((smTowerIdx) => smTowerData[smTowerIdx]);
-  const towers = Util.convertTowerData([...lgTowerData, ...targetSmTowerData]);
+  const allTowerData = lgTowerData.concat(targetSmTowerData);
+  const towers = Util.convertTowerData(allTowerData);
 
   // Use Kruskal's algorithm
-  const edges = towers
-    .reduce((allList, from) => {
-      const edges = towers.reduce((list, to) => {
-        if (from.key !== to.key) {
-          list.push({
-            fromKey: from.key,
-            toKey: to.key,
-            cost: Util.calcCost(from, to),
-          });
-        }
-        return list;
-      }, [] as Edge[]);
-
-      allList.push(...edges);
-      return allList;
-    }, [] as Edge[])
-    .sort((a, b) => a.cost - b.cost);
+  const edges: Edge[] = [];
+  towers.map((from, i) => {
+    towers.map((to, j) => {
+      if (i < j) {
+        edges.push({
+          fromKey: from.key,
+          toKey: to.key,
+          cost: Util.calcCost(from, to),
+        });
+      }
+    });
+  });
+  edges.sort((a, b) => a.cost - b.cost);
 
   const uf = new UnionFind<number>();
   let totalCost = 0;
