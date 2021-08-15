@@ -1,5 +1,12 @@
 # Competitive Programming Practice
 
+## Installation
+
+```
+$ pip3 install --user online-judge-tools
+$ npm install
+```
+
 ## Command
 
 ```bash
