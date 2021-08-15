@@ -84,16 +84,15 @@ smTowerPatterns.forEach((pattern) => {
 
   // Use Kruskal's algorithm
   const edges: Edge[] = [];
-  towers.map((from, i) => {
-    towers.map((to, j) => {
-      if (i < j) {
-        edges.push({
-          fromKey: from.key,
-          toKey: to.key,
-          cost: Util.calcCost(from, to),
-        });
-      }
-    });
+  towers.forEach((from, i) => {
+    for (let j = i + 1; j < towers.length; j++) {
+      const to = towers[j];
+      edges.push({
+        fromKey: from.key,
+        toKey: to.key,
+        cost: Util.calcCost(from, to),
+      });
+    }
   });
   edges.sort((a, b) => a.cost - b.cost);
 
